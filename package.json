@@ -1,0 +1,26 @@
+{
+  "name": "testcodespace",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bbwns3328/TestCodeSpace.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/bbwns3328/TestCodeSpace/issues"
+  },
+  "homepage": "https://github.com/bbwns3328/TestCodeSpace#readme",
+  "dependencies": {
+    "express": "^5.2.1",
+    "multer": "^2.2.0",
+    "sqlite3": "^6.0.1"
+  }
+}

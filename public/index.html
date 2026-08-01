@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>초간단 이미지 백업 서비스</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
+        .upload-box { background: #f0f4f8; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .gallery img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>📸 내 이미지 백업 서비스</h1>
+
+    <div class="upload-box">
+        <form action="/upload" method="POST" enctype="multipart/form-data">
+            <!-- 파일 선택 -->
+            <input type="file" name="image" accept="image/*" required /><br/><br/>
+            
+            <!-- 작품 제목 입력 -->
+            <input type="text" name="title" placeholder="작품 제목을 입력하세요" style="width: 300px; padding: 8px;" /><br/><br/>
+            
+            <!-- 작품 설명 입력 -->
+            <textarea name="description" placeholder="작품 설명을 작성해보세요..." style="width: 300px; height: 80px; padding: 8px;"></textarea><br/><br/>
+            
+            <button type="submit" style="padding: 8px 16px;">작품 업로드</button>
+        </form>
+    </div>
+
+    <h2>백업된 이미지 목록</h2>
+    <div class="gallery" id="gallery"></div>
+
+    <script>
+        // 백업된 목록 불러오기
+        fetch('/api/images')
+            .then(res => res.json())
+            .then(data => {
+                const gallery = document.getElementById('gallery');
+                gallery.innerHTML = ''; // 기존 내용 깔끔하게 초기화
+
+                data.forEach(img => {
+                    // 1. 사진과 글을 담을 카드 상자(div) 만들기
+                    const card = document.createElement('div');
+                    card.className = 'card'; // CSS 꾸미기용 클래스 이름
+
+                    // 2. 카드 안에 들어갈 내용물 조립하기
+                    card.innerHTML = `
+                        <img src="/uploads/${img.filename}" alt="${img.title || '이미지'}">
+                        <div class="card-body">
+                            <h3 class="card-title">${img.title || '제목 없음'}</h3>
+                            <p class="card-desc">${img.description || '설명 없음'}</p>
+                        </div>
+                    `;
+
+                    // 3. 조립된 카드를 갤러리에 집어넣기
+                    gallery.appendChild(card);
+                });
+            });
+    </script>
+</body>
+</html>
