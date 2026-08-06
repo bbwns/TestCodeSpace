@@ -1,3 +1,4 @@
+const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const multer = require('multer');
 const path = require('path');
@@ -48,6 +49,11 @@ app.get('/', (req, res) => {
 });
 app.use('/uploads', express.static('uploads'));
 
+// 상세 페이지: /image/3 으로 오면 detail.html 을 보내준다
+app.get('/image/:id', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/detail.html'));
+});
+
 // 2. 이미지 업로드 API (SQL INSERT 활용)
 // [수정된 업로드 라우트]
 // [응답 씹힘 방지 - 안전한 업로드 라우트]
@@ -85,6 +91,52 @@ app.get('/api/images', (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     res.json(rows); // 가져온 목록을 브라우저에 보내주기
+  });
+});
+
+// 상세 데이터 API: /api/images/3 으로 오면 해당 이미지 1개의 정보를 준다
+app.get('/api/images/:id', (req, res) => {
+  const id = req.params.id; // 주소의 :id 부분 (볼 이미지 번호)
+
+  db.get(`SELECT * FROM images WHERE id = ?`, [id], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!row) {
+      return res.status(404).json({ error: '이미지를 찾을 수 없습니다.' });
+    }
+    res.json(row); // 찾은 한 줄을 브라우저에 보내주기
+  });
+});
+
+// 4. 이미지 삭제 API (파일 + DB 둘 다 삭제)
+app.delete('/api/images/:id', (req, res) => {
+  const id = req.params.id; // 주소의 :id 부분 (삭제할 이미지 번호)
+
+  // ① 먼저 DB에서 해당 이미지의 파일명을 찾는다 (파일을 지우려면 이름을 알아야 하니까)
+  db.get(`SELECT * FROM images WHERE id = ?`, [id], (err, row) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    if (!row) {
+      return res.status(404).json({ error: '이미지를 찾을 수 없습니다.' });
+    }
+
+    // ② 실제 파일 삭제 (uploads/ 폴더에서)
+    fs.unlink(path.join('uploads', row.filename), (unlinkErr) => {
+      if (unlinkErr && unlinkErr.code !== 'ENOENT') {
+        // ENOENT = 파일이 이미 없음. 이미 없으면 무시해도 됨
+        return res.status(500).json({ error: '파일 삭제 중 오류: ' + unlinkErr.message });
+      }
+
+      // ③ DB에서 정보 삭제 (한 줄 제거)
+      db.run(`DELETE FROM images WHERE id = ?`, [id], (delErr) => {
+        if (delErr) {
+          return res.status(500).json({ error: delErr.message });
+        }
+        res.json({ success: true }); // 성공 응답
+      });
+    });
   });
 });
 

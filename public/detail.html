@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>이미지 상세</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; }
+        .back-btn { display: inline-block; margin-bottom: 20px; color: #333; text-decoration: none; }
+        .detail-img { width: 100%; border-radius: 8px; }
+        .info-box { margin-top: 20px; padding: 20px; background: #f0f4f8; border-radius: 8px; }
+        .info-title { margin: 0 0 8px; font-size: 22px; }
+        .info-desc { margin: 0 0 12px; font-size: 15px; color: #555; }
+        .info-date { margin: 0; font-size: 13px; color: #999; }
+    </style>
+</head>
+<body>
+    <a class="back-btn" href="/">← 목록으로 돌아가기</a>
+
+    <!-- 여기에 상세 정보가 채워진다 -->
+    <div id="detail"></div>
+
+    <script>
+        // 주소에서 :id 부분 꺼내기  (예: /image/3 → "3")
+        const id = location.pathname.split('/').pop();
+
+        // 해당 이미지 1개의 정보를 서버에서 받아오기
+        fetch('/api/images/' + id)
+            .then(res => res.json())
+            .then(img => {
+                const detail = document.getElementById('detail');
+                detail.innerHTML = `
+                    <img class="detail-img" src="/uploads/${img.filename}" alt="${img.title || '이미지'}">
+                    <div class="info-box">
+                        <h2 class="info-title">${img.title || '제목 없음'}</h2>
+                        <p class="info-desc">${img.description || '설명 없음'}</p>
+                        <p class="info-date">📅 ${img.created_at || ''}</p>
+                    </div>
+                `;
+            });
+    </script>
+</body>
+</html>

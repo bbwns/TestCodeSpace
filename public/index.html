@@ -8,6 +8,12 @@
         .upload-box { background: #f0f4f8; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
         .gallery { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .gallery img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
+        .card { border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: #fff; }
+        .card-body { padding: 10px; }
+        .card-title { margin: 0 0 4px; font-size: 16px; }
+        .card-desc { margin: 0 0 8px; font-size: 13px; color: #666; }
+        .delete-btn { background: #e74c3c; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+        .delete-btn:hover { background: #c0392b; }
     </style>
 </head>
 <body>
@@ -46,15 +52,42 @@
 
                     // 2. 카드 안에 들어갈 내용물 조립하기
                     card.innerHTML = `
-                        <img src="/uploads/${img.filename}" alt="${img.title || '이미지'}">
+                        <img src="/uploads/${img.filename}" alt="${img.title || '이미지'}" style="cursor:pointer" data-id="${img.id}">
                         <div class="card-body">
                             <h3 class="card-title">${img.title || '제목 없음'}</h3>
                             <p class="card-desc">${img.description || '설명 없음'}</p>
+                            <button class="delete-btn" data-id="${img.id}">🗑️ 삭제</button>
                         </div>
                     `;
 
                     // 3. 조립된 카드를 갤러리에 집어넣기
                     gallery.appendChild(card);
+                });
+
+                // 이미지 클릭하면 상세 페이지로 이동
+                document.querySelectorAll('.gallery img').forEach(img => {
+                    img.addEventListener('click', () => {
+                        location.href = '/image/' + img.dataset.id;
+                    });
+                });
+
+                // 삭제 버튼들에 클릭 동작 연결하기
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const id = btn.dataset.id; // 버튼에 적어둔 이미지 번호
+                        if (!confirm('정말 삭제할까요?')) return; // 확인창
+
+                        // DELETE 요청 보내기 (fetch의 두 번째 인자로 method 지정)
+                        fetch('/api/images/' + id, { method: 'DELETE' })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    location.reload(); // 성공하면 페이지 새로고침
+                                } else {
+                                    alert('삭제 실패: ' + (data.error || '알 수 없는 오류'));
+                                }
+                            });
+                    });
                 });
             });
     </script>
